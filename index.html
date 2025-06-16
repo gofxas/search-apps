@@ -6,7 +6,7 @@
     <meta name="theme-color" content="#4285f4" />
     <title>综合搜索</title>
     <link rel="manifest" href="manifest.json" />
-        <link rel="icon" href="favicon.ico" type="image/x-icon" />
+    <link rel="icon" href="favicon.ico" type="image/x-icon" />
     <script src="/serviceWorkerRegister.js" defer></script>
     <style>
       body {
@@ -137,7 +137,7 @@
         };
 
         if (schemas[app]) {
-          // 方案：通过iframe尝试打开scheme，若失败则提示
+          // 通过iframe尝试打开scheme，若失败则提示
           const iframe = document.createElement("iframe");
           iframe.style.display = "none";
           iframe.src = schemas[app];
@@ -164,5 +164,8 @@
         }
       }
     </script>
+    <div style="text-align: center; margin-top: 20px; font-size: 12px; color: #666">
+      开源地址: <a href="https://github.com/gofxas/search-apps" target="_blank">https://github.com/gofxas/search-apps</a>
+    </div>
   </body>
 </html>
