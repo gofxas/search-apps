@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#4285f4" />
+    <title>综合搜索</title>
+    <link rel="manifest" href="manifest.json" />
+        <link rel="icon" href="favicon.ico" type="image/x-icon" />
+    <script src="/serviceWorkerRegister.js" defer></script>
+    <style>
+      body {
+        font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
+        padding: 20px;
+        max-width: 500px;
+        margin: 0 auto;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        min-height: 100vh;
+        background-color: #dddddd;
+      }
+      .search-container {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+        background: white;
+        padding: 30px;
+        border-radius: 4px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      }
+      input,
+      select {
+        padding: 15px;
+        border: 1px solid #e0e0e0;
+        border-radius: 4px;
+        font-size: 16px;
+        transition: all 0.3s;
+      }
+      input:focus,
+      select:focus {
+        border-color: #dddddd;
+        outline: none;
+        box-shadow: 0 0 0 2px rgba(66, 133, 244, 0.2);
+      }
+      button {
+        padding: 15px;
+        background-color: #aaaaaa;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        font-size: 16px;
+        cursor: pointer;
+        font-weight: bold;
+        transition: background-color 0.3s;
+      }
+      button:hover {
+        background-color: #dddddd;
+      }
+      .title {
+        text-align: center;
+        color: #333;
+        margin-bottom: 20px;
+        font-size: 24px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="search-container">
+      <h1 class="title">综合搜索</h1>
+      <input type="text" id="searchInput" placeholder="输入关键词..." />
+      <select id="appSelect">
+        <option value="">选择APP</option>
+        <option value="douyin">抖音</option>
+        <option value="xhs">小红书</option>
+        <option value="taobao">淘宝</option>
+        <option value="weibo">微博</option>
+        <option value="jd">京东</option>
+        <option value="zhihu">知乎</option>
+        <option value="bilibili">哔哩哔哩</option>
+        <option value="pdd">拼多多</option>
+        <option value="mt">美团</option>
+        <option value="mtwm">美团外卖</option>
+        <option value="dzdp">大众点评</option>
+        <option value="tmall">天猫</option>
+        <option value="jd">京东</option>
+        <option value="smzdm">什么值得买</option>
+        <option value="kuaishou">快手</option>
+        <option value="douban">豆瓣</option>
+      </select>
+      <button onclick="search()">搜索</button>
+    </div>
+
+    <script>
+      // 从localStorage加载上次选择的APP
+      document.addEventListener("DOMContentLoaded", function () {
+        const lastApp = localStorage.getItem("lastUsedApp");
+        if (lastApp) {
+          document.getElementById("appSelect").value = lastApp;
+        }
+      });
+      const appselect = document.getElementById("appSelect");
+
+      appselect.addEventListener("change", (e) => {
+        localStorage.setItem("lastUsedApp", appselect.value);
+      });
+
+      function search() {
+        const query = document.getElementById("searchInput").value.trim();
+        const app = document.getElementById("appSelect").value;
+
+        if (!query || !app) {
+          alert("请输入关键词并选择APP");
+          return;
+        }
+
+        // 保存当前选择的APP到localStorage
+        localStorage.setItem("lastUsedApp", app);
+
+        const schemas = {
+          douyin: `snssdk1128://search?keyword=${encodeURIComponent(query)}`,
+          mt: `imeituan://www.meituan.com/search?q=${encodeURIComponent(query)}`,
+          mtwm: `meituanwaimai://waimai.meituan.com/search?query=${encodeURIComponent(query)}`,
+          dzdp: `dianping://searchshoplist?keyword=${encodeURIComponent(query)}`,
+          taobao: `taobao://s.taobao.com/?q=${encodeURIComponent(query)}`,
+          tmall: `tmall://page.tm/search?q=${encodeURIComponent(query)}`,
+          jd: `openapp.jdmobile://virtual?params={"des":"productList","keyWord":"${query}","from":"search","category":"jump"}`,
+          pdd: `pinduoduo://yangkeduo.com/search_result.html?search_key=${encodeURIComponent(query)}`,
+          xhs: `xhsdiscover://search/result?keyword=${encodeURIComponent(query)}`,
+          kuaishou: `kwai://search?keyword=${encodeURIComponent(query)}`,
+          weibo: `sinaweibo://searchall?q=${encodeURIComponent(query)}`,
+          bilibili: `bilibili://search?keyword=${encodeURIComponent(query)}`,
+          zhihu: `zhihu://search?q=${encodeURIComponent(query)}`,
+          douban: `douban:///search?q=${encodeURIComponent(query)}`,
+          smzdm: `smzdm://search?json={"channelName":"home","search_type":"1","keyWord":"${query}"}`,
+          yddict: `yddict:///search?q=${encodeURIComponent(query)}`,
+        };
+
+        if (schemas[app]) {
+          // 方案：通过iframe尝试打开scheme，若失败则提示
+          const iframe = document.createElement("iframe");
+          iframe.style.display = "none";
+          iframe.src = schemas[app];
+          document.body.appendChild(iframe);
+
+          const start = Date.now();
+          let hasFocus = false;
+
+          function onBlur() {
+            hasFocus = true;
+          }
+
+          window.addEventListener("blur", onBlur);
+
+          setTimeout(() => {
+            window.removeEventListener("blur", onBlur);
+            document.body.removeChild(iframe);
+
+            // 如果页面没有失去焦点，说明跳转失败
+            if (!hasFocus && Date.now() - start < 2000) {
+              alert("未检测到应用跳转，请确认已安装对应APP");
+            }
+          }, 1000);
+        }
+      }
+    </script>
+  </body>
+</html>
